@@ -18,21 +18,20 @@ async function predictLoan() {
     const resultBox = document.getElementById("result");
     const button = document.querySelector("button");
 
-    // 🔥 Validation
+    // Validation
     if (!age || !income || !loanAmount || !creditScore) {
         resultBox.innerHTML = `
             <div style="color:#ff4d4d;">
-                ⚠️ Please fill all fields
+                ⚠️ Please fill all fields.
             </div>
         `;
         return;
     }
 
     try {
-        // 🔄 UI loading state
+        // Loading state
         button.disabled = true;
         button.innerText = "Processing...";
-
         resultBox.innerHTML = showLoading();
 
         const response = await fetch("https://loan-prediction-app-v3up.onrender.com/predict", {
@@ -48,38 +47,40 @@ async function predictLoan() {
             })
         });
 
-        if (!response.ok) {
-            throw new Error("Server error: " + response.status);
-        }
-
         const data = await response.json();
 
-        const isApproved = data.prediction === "Approved";
-        const color = isApproved ? "#00ff88" : "#ff4d4d";
+        if (!response.ok) {
+            throw new Error(data.error || "Server error: " + response.status);
+        }
 
-        // 🔥 Result UI
+        const isApproved = data.prediction === "Approved";
+        const color = isApproved ? "#00C853" : "#D50000";
+        const confidence = (data.probability * 100).toFixed(0);
+
         resultBox.innerHTML = `
             <div class="result-card">
 
-                <h2 style="color:${color}; margin-bottom:10px;">
-                    ${data.prediction}
+                <h2 style="color:${color}; margin-bottom:15px;">
+                    ${isApproved ? "✅ Loan Approved" : "❌ Loan Rejected"}
                 </h2>
 
-                <p>
-                    Confidence Score: 
-                    <b>${data.probability}</b>
-                </p>
+                <p><strong>Prediction:</strong> ${data.prediction}</p>
 
-                <h4 style="margin-top:15px;">Decision Factors:</h4>
+                <p><strong>Confidence Score:</strong> ${confidence}%</p>
 
-                <ul style="text-align:left;">
-                    ${data.reasons.map(reason => `<li>${reason}</li>`).join("")}
-                </ul>
-
-                <div class="progress">
-                    <div class="progress-bar" style="
-                        width:${data.probability * 100}%;
+                <div style="
+                    width:100%;
+                    height:12px;
+                    background:#ddd;
+                    border-radius:10px;
+                    overflow:hidden;
+                    margin-top:18px;
+                ">
+                    <div style="
+                        width:${confidence}%;
+                        height:100%;
                         background:${color};
+                        transition:width 0.5s ease;
                     "></div>
                 </div>
 
@@ -91,12 +92,10 @@ async function predictLoan() {
 
         resultBox.innerHTML = `
             <div style="color:#ff4d4d;">
-                ❌ Error: ${error.message}
+                ❌ ${error.message}
             </div>
         `;
-
     } finally {
-        // 🔄 Reset button
         button.disabled = false;
         button.innerText = "Predict";
     }
