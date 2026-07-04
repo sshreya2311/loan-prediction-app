@@ -35,7 +35,7 @@ async function predictLoan() {
 
         resultBox.innerHTML = showLoading();
 
-        const response = await fetch("https://loan-prediction-app-v3up.onrender.com/", {
+        const response = await fetch("https://loan-prediction-app-v3up.onrender.com/predict", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
